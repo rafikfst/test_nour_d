@@ -1,24 +1,47 @@
-// server.js
+// server.js - Eau Thermale Avène Platform
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuration Supabase
-const supabaseUrl = process.env.SUPABASE_URL || 'https://pyqjgffygesrlfyfagms.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY || 'sb_publishable_vltwOvN6j1ThYSos43EV9A_z7la0IFh';
-const supabase = createClient(supabaseUrl, supabaseKey);
+// ============ CONFIGURATION SUPABASE ============
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-// Middleware
+if (!supabaseUrl || !supabaseKey) {
+    console.error('❌ ERREUR: Variables SUPABASE manquantes dans .env');
+    process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+console.log('✅ Supabase connecté:', supabaseUrl);
+
+// ============ MIDDLEWARES ============
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Middleware d'authentification
+// 🔴 CRUCIAL: Servir les fichiers statiques AVANT les routes
+const publicPath = path.join(__dirname, 'public');
+console.log('📁 Dossier public:', publicPath);
+console.log('📄 Fichiers trouvés:', fs.readdirSync(publicPath));
+
+app.use(express.static(publicPath));
+
+// Log toutes les requêtes
+app.use((req, res, next) => {
+    console.log(`📨 ${req.method} ${req.url}`);
+    next();
+});
+
+// ============ MIDDLEWARE AUTH ============
 const authenticateUser = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -26,9 +49,10 @@ const authenticateUser = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
 
     if (error || !user) {
+        console.error('❌ Auth error:', error);
         return res.status(401).json({ error: 'Token invalide' });
     }
 
@@ -36,7 +60,6 @@ const authenticateUser = async (req, res, next) => {
     next();
 };
 
-// Middleware de vérification de rôle admin
 const requireAdmin = async (req, res, next) => {
     const { data: profile, error } = await supabase
         .from('profiles')
@@ -48,14 +71,29 @@ const requireAdmin = async (req, res, next) => {
         return res.status(403).json({ error: 'Accès refusé. Admin requis.' });
     }
 
+    req.profile = profile;
     next();
 };
 
-// ============ ROUTES API ============
+// ============ ROUTES PAGES HTML ============
 
-// Route principale
+// Page d'accueil (login)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    console.log('➡️ Page accueil demandée');
+    res.sendFile(path.join(publicPath, 'index.html'));
+});
+
+// Pages HTML nommées explicitement
+app.get('/game.html', (req, res) => {
+    res.sendFile(path.join(publicPath, 'game.html'));
+});
+
+app.get('/reporting.html', (req, res) => {
+    res.sendFile(path.join(publicPath, 'reporting.html'));
+});
+
+app.get('/admin.html', (req, res) => {
+    res.sendFile(path.join(publicPath, 'admin.html'));
 });
 
 // ============ AUTHENTIFICATION ============
@@ -64,15 +102,16 @@ app.get('/', (req, res) => {
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { email, password, nom } = req.body;
+        console.log('📝 Tentative inscription:', email);
 
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
+            email_confirm: true
         });
 
         if (authError) throw authError;
 
-        // Mettre à jour le profil
         if (authData.user) {
             await supabase
                 .from('profiles')
@@ -80,12 +119,14 @@ app.post('/api/auth/register', async (req, res) => {
                 .eq('id', authData.user.id);
         }
 
+        console.log('✅ Inscription réussie:', email);
         res.json({
             success: true,
             user: authData.user,
-            message: 'Inscription réussie. Vérifiez votre email.'
+            message: 'Inscription réussie !'
         });
     } catch (error) {
+        console.error('❌ Erreur inscription:', error);
         res.status(400).json({ error: error.message });
     }
 });
@@ -94,6 +135,7 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log('🔑 Tentative connexion:', email);
 
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
@@ -102,19 +144,20 @@ app.post('/api/auth/login', async (req, res) => {
 
         if (error) throw error;
 
-        // Récupérer le profil
         const { data: profile } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', data.user.id)
             .single();
 
+        console.log('✅ Connexion réussie:', email, '- Rôle:', profile?.role);
         res.json({
             success: true,
             session: data.session,
             profile: profile
         });
     } catch (error) {
+        console.error('❌ Erreur connexion:', error);
         res.status(400).json({ error: error.message });
     }
 });
@@ -128,10 +171,10 @@ app.post('/api/auth/logout', async (req, res) => {
     res.json({ success: true });
 });
 
-// ============ GESTION DES UTILISATEURS ============
+// ============ GESTION UTILISATEURS ============
 
 // GET /api/users
-app.get('/api/users', authenticateUser, requireAdmin, async (req, res) => {
+app.get('/api/users', authenticateUser, async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('profiles')
@@ -166,37 +209,33 @@ app.put('/api/users/:id', authenticateUser, requireAdmin, async (req, res) => {
 // DELETE /api/users/:id
 app.delete('/api/users/:id', authenticateUser, requireAdmin, async (req, res) => {
     try {
-        const { error } = await supabase
+        // Supprimer le profil
+        const { error: profileError } = await supabase
             .from('profiles')
             .delete()
             .eq('id', req.params.id);
 
-        if (error) throw error;
+        if (profileError) throw profileError;
+
+        // Supprimer l'utilisateur auth
+        await supabaseAdmin.auth.admin.deleteUser(req.params.id);
+
         res.json({ success: true });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 });
 
-// ============ GESTION DES TOURNÉES ============
+// ============ GESTION TOURNÉES ============
 
 // GET /api/tournees
 app.get('/api/tournees', authenticateUser, async (req, res) => {
     try {
-        let query = supabase.from('tournees').select('*, pharmacies(*)');
-        
-        // Si l'utilisateur n'est pas admin, filtrer par sa région
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('role, region')
-            .eq('id', req.user.id)
-            .single();
+        const { data, error } = await supabase
+            .from('tournees')
+            .select('*')
+            .order('date_debut', { ascending: false });
 
-        if (profile.role === 'agent' && profile.region) {
-            query = query.eq('region', profile.region);
-        }
-
-        const { data, error } = await query.order('date_debut', { ascending: false });
         if (error) throw error;
         res.json(data);
     } catch (error) {
@@ -234,11 +273,9 @@ app.post('/api/tournees', authenticateUser, async (req, res) => {
 // PUT /api/tournees/:id
 app.put('/api/tournees/:id', authenticateUser, async (req, res) => {
     try {
-        const { region, date_debut, date_fin, stock_initial, stock_actuel } = req.body;
-        
         const { data, error } = await supabase
             .from('tournees')
-            .update({ region, date_debut, date_fin, stock_initial, stock_actuel })
+            .update(req.body)
             .eq('id', req.params.id)
             .select()
             .single();
@@ -265,14 +302,12 @@ app.delete('/api/tournees/:id', authenticateUser, requireAdmin, async (req, res)
     }
 });
 
-// ============ GESTION DES PHARMACIES ============
+// ============ GESTION PHARMACIES ============
 
 // GET /api/pharmacies
 app.get('/api/pharmacies', authenticateUser, async (req, res) => {
     try {
-        let query = supabase
-            .from('pharmacies')
-            .select('*, agents(*)');
+        let query = supabase.from('pharmacies').select('*');
 
         const { tournee_id } = req.query;
         if (tournee_id) {
@@ -335,7 +370,7 @@ app.delete('/api/pharmacies/:id', authenticateUser, requireAdmin, async (req, re
     }
 });
 
-// ============ GESTION DES AGENTS ============
+// ============ GESTION AGENTS ============
 
 // GET /api/agents
 app.get('/api/agents', authenticateUser, async (req, res) => {
@@ -405,81 +440,24 @@ app.delete('/api/agents/:id', authenticateUser, requireAdmin, async (req, res) =
 
 // ============ MOTEUR DE JEU ============
 
-// GET /api/questions?difficulte=...
+// GET /api/questions
 app.get('/api/questions', authenticateUser, async (req, res) => {
     try {
-        const { difficulte, agent_id, pharmacy_id } = req.query;
+        const { difficulte } = req.query;
 
-        // Récupérer les questions déjà utilisées par cet agent dans cette session
-        let questionsUsed = [];
-        if (agent_id && pharmacy_id) {
-            const { data: session } = await supabase
-                .from('game_sessions')
-                .select('questions_used')
-                .eq('agent_id', agent_id)
-                .eq('pharmacy_id', pharmacy_id)
-                .eq('statut', 'actif')
-                .single();
-
-            if (session) {
-                questionsUsed = session.questions_used || [];
-            }
-        }
-
-        // Récupérer une question aléatoire non utilisée
-        let query = supabase
+        const { data: questions, error } = await supabase
             .from('questions')
             .select('*')
             .eq('difficulte', difficulte)
             .eq('actif', true);
-
-        if (questionsUsed.length > 0) {
-            query = query.not('id', 'in', `(${questionsUsed.join(',')})`);
-        }
-
-        const { data: questions, error } = await query;
 
         if (error) throw error;
         if (!questions || questions.length === 0) {
             return res.status(404).json({ error: 'Aucune question disponible' });
         }
 
-        // Sélectionner une question aléatoire
         const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
-
         res.json(randomQuestion);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// POST /api/game/init
-app.post('/api/game/init', authenticateUser, async (req, res) => {
-    try {
-        const { agent_id, pharmacy_id } = req.body;
-
-        // Créer une nouvelle session de jeu
-        const { data, error } = await supabase
-            .from('game_sessions')
-            .insert([{
-                agent_id,
-                pharmacy_id,
-                questions_used: [],
-                niveau_actuel: 1,
-                statut: 'actif'
-            }])
-            .select()
-            .single();
-
-        if (error) throw error;
-
-        // Mettre à jour le statut de l'agent
-        await supabase
-            .from('agents')
-            .update({ statut_jeu: 'En cours' })
-            .eq('id', agent_id);
-
-        res.json(data);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -497,7 +475,6 @@ app.post('/api/game/submit', authenticateUser, async (req, res) => {
             tournee_id
         } = req.body;
 
-        // Vérifier la réponse
         const { data: question, error: questionError } = await supabase
             .from('questions')
             .select('*')
@@ -508,35 +485,13 @@ app.post('/api/game/submit', authenticateUser, async (req, res) => {
 
         const isCorrect = JSON.stringify(reponse) === JSON.stringify(question.blocs_corrects);
 
-        // Mettre à jour la session de jeu
-        const { data: session } = await supabase
-            .from('game_sessions')
-            .select('*')
-            .eq('agent_id', agent_id)
-            .eq('pharmacy_id', pharmacy_id)
-            .eq('statut', 'actif')
-            .single();
-
-        if (session) {
-            const updatedQuestions = [...session.questions_used, question_id];
-            const newNiveau = isCorrect ? niveau_actuel + 1 : niveau_actuel;
-
-            await supabase
-                .from('game_sessions')
-                .update({
-                    questions_used: updatedQuestions,
-                    niveau_actuel: newNiveau,
-                    statut: isCorrect ? 'actif' : 'termine'
-                })
-                .eq('id', session.id);
-        }
-
-        // Si perdu, enregistrer dans le bilan
+        // Mettre à jour le statut de l'agent si perdu
         if (!isCorrect) {
             await supabase.from('agents')
                 .update({ statut_jeu: 'Perdu' })
                 .eq('id', agent_id);
 
+            // Enregistrer dans le bilan
             const { data: agent } = await supabase
                 .from('agents')
                 .select('nom, pharmacies(nom)')
@@ -545,15 +500,14 @@ app.post('/api/game/submit', authenticateUser, async (req, res) => {
 
             await supabase.from('bilans').insert([{
                 tournee_id,
-                nom_pharmacie: agent.pharmacies.nom,
-                nom_agent: agent.nom,
+                nom_pharmacie: agent?.pharmacies?.nom || 'Inconnue',
+                nom_agent: agent?.nom || 'Inconnu',
                 q1: question.enonce,
                 r1: reponse.join(', '),
                 cadeau_description: 'Perdu'
             }]);
         }
 
-        // Récupérer les infos du tournée pour la vérification de stock
         const { data: tournee } = await supabase
             .from('tournees')
             .select('stock_actuel')
@@ -575,13 +529,11 @@ app.post('/api/game/claim-gift', authenticateUser, async (req, res) => {
     try {
         const {
             agent_id,
-            pharmacy_id,
             tournee_id,
             type_cadeau,
             question_answers
         } = req.body;
 
-        // Mapping des types de cadeaux
         const stockMapping = {
             1: 'type1',
             2: 'type2',
@@ -594,7 +546,7 @@ app.post('/api/game/claim-gift', authenticateUser, async (req, res) => {
             return res.status(400).json({ error: 'Type de cadeau invalide' });
         }
 
-        // Vérifier et décrémenter le stock
+        // Vérifier le stock
         const { data: tournee, error: tourneeError } = await supabase
             .from('tournees')
             .select('stock_actuel')
@@ -631,14 +583,6 @@ app.post('/api/game/claim-gift', authenticateUser, async (req, res) => {
             .update({ statut_jeu: statutMapping[type_cadeau] })
             .eq('id', agent_id);
 
-        // Terminer la session de jeu
-        await supabase
-            .from('game_sessions')
-            .update({ statut: 'termine' })
-            .eq('agent_id', agent_id)
-            .eq('pharmacy_id', pharmacy_id)
-            .eq('statut', 'actif');
-
         // Enregistrer dans le bilan
         const { data: agent } = await supabase
             .from('agents')
@@ -648,17 +592,19 @@ app.post('/api/game/claim-gift', authenticateUser, async (req, res) => {
 
         const bilanEntry = {
             tournee_id,
-            nom_pharmacie: agent.pharmacies.nom,
-            nom_agent: agent.nom,
+            nom_pharmacie: agent?.pharmacies?.nom || 'Inconnue',
+            nom_agent: agent?.nom || 'Inconnu',
             cadeau_assigne: true,
             cadeau_description: statutMapping[type_cadeau]
         };
 
         // Ajouter les questions/réponses
-        for (let i = 0; i < question_answers.length; i++) {
-            const qIndex = i + 1;
-            bilanEntry[`q${qIndex}`] = question_answers[i].question;
-            bilanEntry[`r${qIndex}`] = question_answers[i].reponse;
+        if (question_answers) {
+            for (let i = 0; i < question_answers.length; i++) {
+                const qIndex = i + 1;
+                bilanEntry[`q${qIndex}`] = question_answers[i].question;
+                bilanEntry[`r${qIndex}`] = question_answers[i].reponse;
+            }
         }
 
         await supabase.from('bilans').insert([bilanEntry]);
@@ -683,7 +629,7 @@ app.get('/api/reporting', authenticateUser, async (req, res) => {
             .select('*')
             .order('created_at', { ascending: false });
 
-        const { tournee_id, region } = req.query;
+        const { tournee_id } = req.query;
         if (tournee_id) {
             query = query.eq('tournee_id', tournee_id);
         }
@@ -697,22 +643,7 @@ app.get('/api/reporting', authenticateUser, async (req, res) => {
     }
 });
 
-// DELETE /api/reporting/:id
-app.delete('/api/reporting/:id', authenticateUser, requireAdmin, async (req, res) => {
-    try {
-        const { error } = await supabase
-            .from('bilans')
-            .delete()
-            .eq('id', req.params.id);
-
-        if (error) throw error;
-        res.json({ success: true });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// ============ QUESTIONS CRUD ============
+// ============ GESTION QUESTIONS ============
 
 // GET /api/questions/all
 app.get('/api/questions/all', authenticateUser, async (req, res) => {
@@ -777,8 +708,30 @@ app.delete('/api/questions/:id', authenticateUser, requireAdmin, async (req, res
     }
 });
 
-// Démarrer le serveur
-app.listen(PORT, () => {
-    console.log(`🌊 Serveur Avène Thermal lancé sur http://localhost:${PORT}`);
-    console.log(`💧 Environnement: ${process.env.NODE_ENV || 'development'}`);
+// ============ GESTION D'ERREURS ============
+
+// 404 - Page non trouvée
+app.use((req, res) => {
+    console.log('❌ 404:', req.url);
+    if (req.url.endsWith('.html') || req.url === '/') {
+        res.status(404).sendFile(path.join(publicPath, 'index.html'));
+    } else {
+        res.status(404).json({ error: 'Route non trouvée' });
+    }
+});
+
+// Erreur serveur
+app.use((err, req, res, next) => {
+    console.error('💥 Erreur serveur:', err);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
+});
+
+// ============ DÉMARRAGE ============
+app.listen(PORT, '0.0.0.0', () => {
+    console.log('═══════════════════════════════════════');
+    console.log(`🌊 Serveur Avène Thermal lancé !`);
+    console.log(`📍 Local:   http://localhost:${PORT}`);
+    console.log(`📍 Réseau:  http://0.0.0.0:${PORT}`);
+    console.log(`📁 Public:  ${publicPath}`);
+    console.log('═══════════════════════════════════════');
 });
