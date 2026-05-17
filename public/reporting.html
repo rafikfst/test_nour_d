@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapports - Eau Thermale Avène</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Rapports et Bilans</h1>
+            <p>Consultation et export des données</p>
+        </div>
+
+        <div style="padding: 20px;">
+            <div class="card animate-fade-in mb-3">
+                <div class="flex items-center justify-between" style="flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <h3 class="card-title">Filtres</h3>
+                    </div>
+                    <div class="flex gap-1" style="flex-wrap: wrap;">
+                        <select id="tournee-filter" class="input-field" style="width: auto;">
+                            <option value="">Toutes les tournées</option>
+                        </select>
+                        <button id="export-btn" class="btn btn-primary">
+                            📥 Exporter Excel
+                        </button>
+                        <a href="/" class="btn btn-outline">
+                            🏠 Accueil
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card animate-fade-in" style="animation-delay: 0.1s;">
+                <div class="table-container">
+                    <table id="reporting-table">
+                        <thead>
+                            <tr>
+                                <th>Pharmacie</th>
+                                <th>Agent</th>
+                                <th>Q1</th>
+                                <th>R1</th>
+                                <th>Q2</th>
+                                <th>R2</th>
+                                <th>Q3</th>
+                                <th>R3</th>
+                                <th>Q4</th>
+                                <th>R4</th>
+                                <th>Cadeau</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <tr>
+                                <td colspan="12" class="text-center">
+                                    <div class="spinner"></div>
+                                    <p>Chargement des données...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/xlsx.full.min.js"></script>
+    <script src="/js/reporting.js"></script>
+</body>
+</html>

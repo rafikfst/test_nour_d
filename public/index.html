@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Eau Thermale Avène - Connexion</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+    <div class="container">
+        <div id="auth-container" class="card animate-fade-in" style="max-width: 400px; margin: 60px auto;">
+            <div style="text-align: center; margin-bottom: 32px;">
+                <h1 style="color: var(--primary-salmon); font-size: 2rem; margin-bottom: 8px;">Eau Thermale</h1>
+                <h2 style="color: var(--secondary-aqua-dark); font-size: 1.5rem;">Avène</h2>
+                <p style="color: var(--text-slate-light); margin-top: 16px;">Plateforme de gestion des tournées</p>
+            </div>
+
+            <!-- Formulaire de connexion -->
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" class="input-field" required placeholder="votre@email.com">
+                </div>
+                <div class="input-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" class="input-field" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Se connecter
+                </button>
+            </form>
+
+            <p style="text-align: center; margin-top: 16px; color: var(--text-slate-light);">
+                Pas encore de compte ? 
+                <a href="#" id="show-register" style="color: var(--primary-salmon); text-decoration: none; font-weight: 500;">
+                    S'inscrire
+                </a>
+            </p>
+        </div>
+
+        <!-- Formulaire d'inscription (caché par défaut) -->
+        <div id="register-container" class="card animate-fade-in hidden" style="max-width: 400px; margin: 60px auto;">
+            <div style="text-align: center; margin-bottom: 32px;">
+                <h2 style="color: var(--primary-salmon);">Créer un compte</h2>
+            </div>
+
+            <form id="register-form">
+                <div class="input-group">
+                    <label for="reg-nom">Nom complet</label>
+                    <input type="text" id="reg-nom" class="input-field" required placeholder="Jean Dupont">
+                </div>
+                <div class="input-group">
+                    <label for="reg-email">Email</label>
+                    <input type="email" id="reg-email" class="input-field" required placeholder="votre@email.com">
+                </div>
+                <div class="input-group">
+                    <label for="reg-password">Mot de passe</label>
+                    <input type="password" id="reg-password" class="input-field" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    S'inscrire
+                </button>
+            </form>
+
+            <p style="text-align: center; margin-top: 16px; color: var(--text-slate-light);">
+                Déjà un compte ? 
+                <a href="#" id="show-login" style="color: var(--primary-salmon); text-decoration: none; font-weight: 500;">
+                    Se connecter
+                </a>
+            </p>
+        </div>
+
+        <!-- Dashboard (caché par défaut) -->
+        <div id="dashboard" class="hidden">
+            <div class="header">
+                <h1>Eau Thermale Avène</h1>
+                <p>Tableau de bord</p>
+            </div>
+
+            <div style="padding: 20px;">
+                <div id="user-info" class="card animate-fade-in"></div>
+
+                <div class="grid grid-2 mt-3">
+                    <div class="card animate-fade-in" style="animation-delay: 0.1s;">
+                        <h3 class="card-title">Jeu Interactif</h3>
+                        <p>Lancer une session de jeu avec un agent</p>
+                        <a href="/game.html" class="btn btn-primary mt-2">
+                            🎮 Jouer
+                        </a>
+                    </div>
+
+                    <div class="card animate-fade-in" style="animation-delay: 0.2s;">
+                        <h3 class="card-title">Rapports</h3>
+                        <p>Consulter et exporter les bilans</p>
+                        <a href="/reporting.html" class="btn btn-secondary mt-2">
+                            📊 Voir les rapports
+                        </a>
+                    </div>
+
+                    <div class="card animate-fade-in hidden" id="admin-card" style="animation-delay: 0.3s;">
+                        <h3 class="card-title">Administration</h3>
+                        <p>Gérer les utilisateurs, questions et données</p>
+                        <a href="/admin.html" class="btn btn-outline mt-2">
+                            ⚙️ Administration
+                        </a>
+                    </div>
+                </div>
+
+                <button id="logout-btn" class="btn btn-danger mt-3">
+                    🚪 Déconnexion
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - Eau Thermale Avène</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Administration</h1>
+            <p>Gestion des utilisateurs et données</p>
+        </div>
+
+        <div style="padding: 20px;">
+            <!-- Navigation admin -->
+            <div class="flex gap-1 mb-3" style="flex-wrap: wrap;">
+                <button class="btn btn-primary admin-tab" data-tab="users">
+                    👥 Utilisateurs
+                </button>
+                <button class="btn btn-outline admin-tab" data-tab="questions">
+                    ❓ Questions
+                </button>
+                <button class="btn btn-outline admin-tab" data-tab="tournees">
+                    🗺️ Tournées
+                </button>
+                <button class="btn btn-outline admin-tab" data-tab="pharmacies">
+                    🏥 Pharmacies
+                </button>
+                <button class="btn btn-outline admin-tab" data-tab="agents">
+                    👤 Agents
+                </button>
+                <a href="/" class="btn btn-secondary">
+                    🏠 Accueil
+                </a>
+            </div>
+
+            <!-- Contenu des onglets -->
+            <div id="tab-content"></div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+</html>

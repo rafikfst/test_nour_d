@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jeu Interactif - Eau Thermale Avène</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>Jeu Interactif Avène</h1>
+            <p id="level-indicator">Niveau 1 - 75%</p>
+        </div>
+
+        <div class="container" id="game-container">
+            <!-- Sélection de la pharmacie et de l'agent -->
+            <div id="selection-screen" class="card animate-fade-in">
+                <h3 class="card-title">Sélection</h3>
+                
+                <div class="input-group">
+                    <label for="tournee-select">Tournée</label>
+                    <select id="tournee-select" class="input-field">
+                        <option value="">Choisir une tournée...</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="pharmacy-select">Pharmacie</label>
+                    <select id="pharmacy-select" class="input-field" disabled>
+                        <option value="">Choisir une pharmacie...</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="agent-select">Agent</label>
+                    <select id="agent-select" class="input-field" disabled>
+                        <option value="">Choisir un agent...</option>
+                    </select>
+                </div>
+
+                <button id="start-game-btn" class="btn btn-primary" disabled>
+                    🎮 Commencer le jeu
+                </button>
+            </div>
+
+            <!-- Zone de jeu -->
+            <div id="game-screen" class="hidden">
+                <div class="card animate-fade-in">
+                    <h3 class="card-title">Question</h3>
+                    <p id="question-text" class="mb-2" style="font-size: 1.1rem; line-height: 1.6;"></p>
+                </div>
+
+                <!-- Zone de réponse -->
+                <div class="card animate-fade-in" style="animation-delay: 0.1s;">
+                    <h3 class="card-title">Votre réponse</h3>
+                    <div id="answer-zone" class="mb-2" style="min-height: 60px; border: 2px dashed var(--secondary-aqua); border-radius: var(--border-radius); padding: 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center;">
+                        <span style="color: var(--text-slate-light);">Cliquez sur les mots ci-dessous pour les placer ici</span>
+                    </div>
+                </div>
+
+                <!-- Zone de mots disponibles -->
+                <div class="card animate-fade-in" style="animation-delay: 0.2s;">
+                    <h3 class="card-title">Mots disponibles</h3>
+                    <div id="word-pool" class="mb-2" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                    </div>
+                </div>
+
+                <div class="flex gap-1 mt-2">
+                    <button id="validate-btn" class="btn btn-primary animate-button-pulse">
+                        ✅ Valider
+                    </button>
+                    <button id="reset-btn" class="btn btn-outline">
+                        🔄 Réinitialiser
+                    </button>
+                </div>
+
+                <!-- Indicateur de stock -->
+                <div id="stock-warning" class="hidden mt-2">
+                    <div class="card" style="background: #FFF3E0; border-left: 4px solid var(--warning-orange);">
+                        <p style="color: var(--warning-orange); font-weight: 500;">
+                            ⚠️ Attention : Stock limité pour ce type de cadeau
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal de choix -->
+            <div id="choice-modal" class="modal-overlay">
+                <div class="modal animate-fade-in">
+                    <h3 class="modal-title" id="modal-title">Félicitations !</h3>
+                    <div class="modal-body" id="modal-body">
+                        <p>Vous avez réussi le niveau !</p>
+                    </div>
+                    <div class="modal-actions" id="modal-actions">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulles de succès -->
+            <div id="success-bubbles" class="success-bubbles-container hidden"></div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/game.js"></script>
+</body>
+</html>
