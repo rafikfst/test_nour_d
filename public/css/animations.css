@@ -1,0 +1,237 @@
+/* animations.css - Moteur d'Effets et d'Animations Visuelles Avène */
+
+/* Flottement thermal - pour les chips de mots */
+@keyframes thermalFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-6px) rotate(-1deg);
+    }
+    50% {
+        transform: translateY(-3px) rotate(0.5deg);
+    }
+    75% {
+        transform: translateY(-8px) rotate(1deg);
+    }
+}
+
+/* Apparition printanière d'un chip */
+@keyframes chipPop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    70% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Secousse de mauvaise réponse */
+@keyframes wrongAnswerShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-8px);
+        box-shadow: 0 0 20px rgba(244, 67, 54, 0.4);
+        border-color: #F44336;
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(8px);
+        box-shadow: 0 0 20px rgba(244, 67, 54, 0.4);
+        border-color: #F44336;
+    }
+}
+
+/* Bulles de succès montantes */
+@keyframes successBubble {
+    0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+    }
+    20% {
+        opacity: 0.8;
+    }
+    50% {
+        transform: translateY(50vh) scale(1.2);
+        opacity: 0.6;
+    }
+    80% {
+        transform: translateY(20vh) scale(1);
+        opacity: 0.3;
+    }
+    100% {
+        transform: translateY(-20vh) scale(0.8);
+        opacity: 0;
+    }
+}
+
+/* Pulse des boutons */
+@keyframes buttonPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(227, 122, 90, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 15px rgba(227, 122, 90, 0);
+    }
+}
+
+/* Fade in */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Slide in */
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Classes d'animation */
+.animate-thermal-float {
+    animation: thermalFloat 3s ease-in-out infinite;
+}
+
+.animate-chip-pop {
+    animation: chipPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.animate-wrong-shake {
+    animation: wrongAnswerShake 0.6s ease-in-out;
+}
+
+.animate-button-pulse {
+    animation: buttonPulse 2s ease-in-out infinite;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-in {
+    animation: slideInFromRight 0.4s ease-out;
+}
+
+/* Conteneur de bulles de succès */
+.success-bubbles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2000;
+}
+
+.success-bubble {
+    position: absolute;
+    bottom: -50px;
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle, rgba(162, 210, 223, 0.4), rgba(162, 210, 223, 0));
+    border-radius: 50%;
+    animation: successBubble 4s ease-out forwards;
+}
+
+.success-bubble:nth-child(1) { left: 10%; animation-delay: 0s; }
+.success-bubble:nth-child(2) { left: 30%; animation-delay: 0.3s; width: 30px; height: 30px; }
+.success-bubble:nth-child(3) { left: 50%; animation-delay: 0.6s; width: 50px; height: 50px; }
+.success-bubble:nth-child(4) { left: 70%; animation-delay: 0.9s; width: 35px; height: 35px; }
+.success-bubble:nth-child(5) { left: 90%; animation-delay: 1.2s; }
+
+/* Zone de jeu */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    background: var(--surface-white);
+    border: 2px solid var(--secondary-aqua);
+    border-radius: 25px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-slate);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-soft);
+    user-select: none;
+    margin: 4px;
+}
+
+.chip:hover {
+    border-color: var(--primary-salmon);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.chip.placed {
+    background: var(--secondary-aqua-light);
+    border-color: var(--secondary-aqua);
+}
+
+.chip.incorrect {
+    border-color: var(--error-red);
+    background: rgba(244, 67, 54, 0.05);
+}
+
+/* Chargement */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--secondary-aqua);
+    border-top-color: var(--primary-salmon);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Toast notifications */
+@keyframes toastSlideIn {
+    from {
+        transform: translateX(100%) translateY(-50%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0) translateY(-50%);
+        opacity: 1;
+    }
+}
+
+.toast {
+    position: fixed;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    background: var(--surface-white);
+    border-radius: var(--border-radius);
+    padding: 16px 24px;
+    box-shadow: var(--shadow-strong);
+    z-index: 3000;
+    animation: toastSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    max-width: 300px;
+}
