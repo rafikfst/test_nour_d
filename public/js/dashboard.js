@@ -713,3 +713,38 @@ function handleLogout() {
         });
     }
 }
+// Remplacer la fonction showTourneeForm par celle-ci
+function showTourneeForm(tournee = null) {
+    console.log('showTourneeForm appelé', tournee); // Debug
+    
+    const form = document.getElementById('tournee-form');
+    if (!form) {
+        console.error('❌ Élément tournee-form introuvable');
+        return;
+    }
+    
+    // Afficher le formulaire
+    form.style.display = 'block';
+    
+    // Mettre à jour le titre
+    const title = document.getElementById('tournee-form-title');
+    if (title) {
+        title.textContent = tournee ? 'Modifier la tournée' : 'Nouvelle tournée';
+    }
+    
+    // Remplir les champs si édition
+    document.getElementById('tournee-id').value = tournee?.id || '';
+    document.getElementById('tournee-region').value = tournee?.region || '';
+    document.getElementById('tournee-debut').value = tournee?.date_debut || '';
+    document.getElementById('tournee-fin').value = tournee?.date_fin || '';
+    document.getElementById('stock-type1').value = tournee?.stock_initial?.type1 || tournee?.stock_actuel?.type1 || 50;
+    document.getElementById('stock-type2').value = tournee?.stock_initial?.type2 || tournee?.stock_actuel?.type2 || 30;
+    document.getElementById('stock-type3').value = tournee?.stock_initial?.type3 || tournee?.stock_actuel?.type3 || 10;
+    document.getElementById('stock-superlot').value = tournee?.stock_initial?.superlot || tournee?.stock_actuel?.superlot || 2;
+    
+    // Scroller vers le formulaire
+    form.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Rendre la fonction globale
+window.showTourneeForm = showTourneeForm;
