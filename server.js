@@ -735,3 +735,67 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`📁 Public:  ${publicPath}`);
     console.log('═══════════════════════════════════════');
 });
+// ============ SESSIONS ============
+
+// POST /api/sessions - Sauvegarder une session
+app.post('/api/sessions', authenticateUser, async (req, res) => {
+    try {
+        const { token, user_id } = req.body;
+        
+        const { data, error } = await supabase
+            .from('user_sessions')
+            .upsert({
+                user_id,
+                token,
+                expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ============ ACTIVITÉ ============
+
+// GET /api/activity - Logs d'activité
+app.get('/api/activity', authenticateUser, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('activity_logs')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(20);
+
+        if (error) throw error;
+        res.json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// POST /api/activity - Logger une activité
+app.post('/api/activity', authenticateUser, async (req, res) => {
+    try {
+        const { action, details } = req.body;
+        
+        const { data, error } = await supabase
+            .from('activity_logs')
+            .insert([{
+                user_id: req.user.id,
+                action,
+                details,
+                ip_address: req.ip
+            }])
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
